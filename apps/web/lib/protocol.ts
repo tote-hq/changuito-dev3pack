@@ -1,0 +1,257 @@
+import type { Cart, Product } from '@changuito/mcp/types';
+import type { SessionSnapshot } from '@changuito/mcp/session';
+
+import type { ChatImage } from './chat-image.ts';
+import type { NetworkId } from './deployments.ts';
+import type { Lang } from './lang.ts';
+
+/**
+ * The wire between the agent and the browser.
+ *
+ * Imported by both sides, so a change that breaks the UI breaks the build
+ * rather than the demo. Products and carts travel as the MCP server's own
+ * types — re-describing them here would be a second definition to keep in
+ * step with the first.
+ */
+/**
+ * Where the server is in a turn. Every stage is emitted at the moment it
+ * becomes true, so the waiting row can say what is happening without
+ * inventing a percentage.
+ *
+ * - `received`: the gates passed and the stream is open. From here on the
+ *   message is the server's, which is what separates "no se envió" from "se
+ *   cortó" when a turn fails with nothing on screen.
+ * - `thinking`: a model hop started. `hop` counts from zero; past the first
+ *   the model is reading tool results, not the user's message.
+ * - `fallback`: the local model failed before saying anything, and the hop is
+ *   being re-run on the hosted one.
+ */
+export type TurnStage = 'received' | 'thinking' | 'fallback';
+
+export type CompareConfidence = 'ean' | 'brand_size_unit' | 'none' | 'failed';
+
+/** A Coto shelf the card may link to. A missing price is omitted, never 0. */
+export interface CompareOffer {
+  id: string;
+  name: string;
+  shelfCentavos: number;
+  lineCentavos: number;
+  available: boolean;
+  url?: string;
+}
+
+export interface CompareLineView {
+  skuId: string;
+  name: string;
+  quantity: number;
+  diaLineCentavos: number;
+  confidence: CompareConfidence;
+  coto?: CompareOffer;
+}
+
+/** Absolute difference of the available EAN matches. Absent when none finished. */
+export interface CompareGap {
+  diaSubtotalCentavos: number;
+  cotoSubtotalCentavos: number;
+  gapCentavos: number;
+}
+
+/** One side of a search-time comparison. A missing price is omitted, never 0. */
+export interface SearchCompareItem {
+  id: string;
+  name: string;
+  shelfCentavos: number;
+  available: boolean;
+  /** Copied from the catalog. Absent when that chain has no photo, brand, or unit. */
+  imageUrl?: string;
+  brand?: string;
+  unitMultiplier?: number;
+  measurementUnit?: string;
+  /** Set when this card is one side of a same-product or same-type pair. */
+  match?: 'same' | 'similar';
+}
+
+export type SearchCompareStatus =
+  | 'pending'
+  | 'ok'
+  | 'coto_empty'
+  | 'coto_error'
+  | 'coto_timed_out'
+  | 'dia_error';
+
+/** The finished card. Stored on the turn and re-emitted without calling Coto again. */
+export interface CompareCard {
+  status: 'ok' | 'degraded' | 'timed_out';
+  cartId: string;
+  handoffUrl: string;
+  matched: number;
+  lines: number;
+  gap?: CompareGap;
+  rows: CompareLineView[];
+}
+
+export type UiEvent =
+  /** Progress without content. Never creates a block in the transcript. */
+  | { t: 'status'; stage: TurnStage; hop?: number }
+  /** A fragment of the assistant's reply. */
+  | { t: 'text'; delta: string }
+  /** Summarized reasoning, for a "thinking" line the user can ignore. */
+  | { t: 'thinking'; delta: string }
+  | { t: 'tool_start'; id: string; name: string }
+  | { t: 'tool_end'; id: string; ok: boolean; ms: number }
+  /** The model chose to show these. Not everything it searched. */
+  | { t: 'products'; items: Product[]; note?: string }
+  | {
+      t: 'cart';
+      cart: Cart;
+      handoffUrl?: string;
+      dualCheckout?: boolean;
+      soloDia?: boolean;
+      /** False on a Coto basket: there is no pay control. Omitted on a Día basket. */
+      orderable?: boolean;
+    }
+  /**
+   * The Día vs Coto card. The server draws it; the model does not supply a price.
+   * `pending` has no Coto prices. A later event for the same cart in the turn
+   * replaces that block.
+   */
+  | { t: 'compare'; status: 'pending'; cartId: string; handoffUrl: string }
+  | ({ t: 'compare'; checkoutDemo?: boolean } & CompareCard)
+  /**
+   * Both chains for one query, before a cart write. `pending` has no prices.
+   * A later event with the same `id` in the turn replaces that block.
+   */
+  | {
+      t: 'search_compare';
+      id: string;
+      status: 'pending';
+      query: string;
+      postalCode?: string;
+      /**
+       * Chains this search is querying. Absent means both, so a block from
+       * before the field existed still draws Día and Coto.
+       */
+      chains?: ('dia' | 'coto')[];
+    }
+  | {
+      t: 'search_compare';
+      id: string;
+      status: Exclude<SearchCompareStatus, 'pending'>;
+      query: string;
+      postalCode?: string;
+      dia: SearchCompareItem[];
+      coto: SearchCompareItem[];
+      gapCentavos?: number;
+      feeCentavos?: number;
+      /** Absent means both chains were queried. */
+      chains?: ('dia' | 'coto')[];
+      /** The type label. The query, trimmed. Absent on a block from before this field. */
+      kind?: string;
+      /** Chains with no comparable product for this type. Absent when both have one. */
+      noPair?: ('dia' | 'coto')[];
+    }
+  /** A requested item came back with no available hit on the chosen store. */
+  | { t: 'missing'; query: string; retailer: 'dia' | 'coto'; item: string }
+  | { t: 'error'; message: string; recoverable: boolean }
+  /** Always last. Carries the snapshot the browser must send back next turn. */
+  | {
+      t: 'done';
+      stopReason: string;
+      snapshot: SessionSnapshot;
+      /**
+       * Which model answered, when more than one could have.
+       *
+       * Optional because most deployments have exactly one and the field would
+       * be noise. Where a local model is configured it is the only way to tell
+       * a fallback from a normal turn — the reply reads the same either way,
+       * which is the point, and also means a laptop that quietly stopped being
+       * used is otherwise invisible.
+       */
+      brain?: string;
+    };
+
+/** A card click. `chain` and `id` only. A price in the body is ignored. */
+export interface CartAddRequest {
+  sessionId: string;
+  snapshot?: SessionSnapshot;
+  network?: NetworkId;
+  chain: 'dia' | 'coto';
+  id: string;
+}
+
+export type CartAddResponse =
+  | { ok: true; event: Extract<UiEvent, { t: 'cart' }> | null; snapshot: SessionSnapshot }
+  | { ok: false; error: string };
+
+export interface ChatRequest {
+  sessionId: string;
+  message: string;
+  /** What the browser was given by the previous `done`. Absent on the first turn. */
+  snapshot?: SessionSnapshot;
+  /**
+   * Which mode the shopper is in. The server has no way to infer it — the
+   * choice lives in NetworkProvider and nothing else on this request carries
+   * it — and `chat.network` is what keeps a prueba conversation out of a real
+   * one's history. Validated on arrival; anything unknown lands on the default,
+   * which is the mode that cannot spend anything.
+   */
+  network?: NetworkId;
+  /**
+   * Which language the footer is set to. The agent's reply language, and
+   * nothing else — the route's own refusals stay Spanish, because the MCP
+   * server and the agent share them and neither reads a cookie from this
+   * browser. Anything unknown lands on the default.
+   */
+  lang?: Lang;
+  /**
+   * One photo of a list, a product or a shelf. Identifiers only would not
+   * work here — the picture is the thing being identified — so the bytes
+   * travel, and `isChatImage` is what keeps them to a JPEG the model can read.
+   */
+  image?: ChatImage;
+  /**
+   * The shopper's earlier lines in this chat, oldest first, capped by the
+   * sender. The server uses them to set a supermarket and postal code the
+   * model would otherwise ask for again. Absent on the first turn.
+   */
+  prior?: string[];
+  /**
+   * The products already on screen, names and sku ids only. Prices stay on
+   * the server. Absent when nothing has been shown.
+   */
+  shown?: { skuId: string; name: string }[];
+}
+
+export const SSE_HEADERS: Record<string, string> = {
+  'Content-Type': 'text/event-stream; charset=utf-8',
+  'Cache-Control': 'private, no-store, no-transform',
+  Connection: 'keep-alive',
+  // Without this a proxy buffers the whole stream and "streaming" becomes a
+  // single delivery at the end.
+  'X-Accel-Buffering': 'no',
+};
+
+export const encodeEvent = (e: UiEvent): string => `data: ${JSON.stringify(e)}\n\n`;
+
+/** An SSE comment. Keeps an idle connection open while a slow search runs. */
+export const HEARTBEAT = ':\n\n';
+
+/**
+ * Parse a stream of SSE text into events. Returns whatever is left over, which
+ * the caller must prepend to the next chunk — a frame can be split anywhere,
+ * including inside a JSON string.
+ */
+export function parseEvents(buffer: string): { events: UiEvent[]; rest: string } {
+  const frames = buffer.split('\n\n');
+  const rest = frames.pop() ?? '';
+  const events: UiEvent[] = [];
+  for (const frame of frames) {
+    if (!frame.startsWith('data: ')) continue; // heartbeat comment
+    try {
+      events.push(JSON.parse(frame.slice(6)) as UiEvent);
+    } catch {
+      // A frame we cannot parse is a bug, but dropping it beats killing the stream.
+    }
+  }
+  return { events, rest };
+}

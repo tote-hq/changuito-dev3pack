@@ -1,0 +1,47 @@
+import { VtexAdapter, type VtexStoreConfig } from './vtex.js';
+import type { RetailerAdapter } from './types.js';
+
+/**
+ * All four of these are VTEX IO storefronts, so they share one adapter and
+ * differ only by config. salesChannel is deliberately NOT set: the adapter
+ * discovers it per store at runtime (Cencosud = 32, the others = 1), which
+ * keeps this table correct even if a store changes it.
+ */
+const VTEX_STORES: VtexStoreConfig[] = [
+  { id: 'jumbo',     displayName: 'Jumbo',     host: 'www.jumbo.com.ar',                   locale: 'es-AR' },
+  { id: 'disco',     displayName: 'Disco',     host: 'www.disco.com.ar',                   locale: 'es-AR' },
+  { id: 'carrefour', displayName: 'Carrefour', host: 'www.carrefour.com.ar',               locale: 'es-AR' },
+  { id: 'dia',       displayName: 'Día',       host: 'diaonline.supermercadosdia.com.ar',  locale: 'es-AR' },
+];
+
+const adapters = new Map<string, RetailerAdapter>(
+  VTEX_STORES.map((c) => [c.id, new VtexAdapter(c)]),
+);
+
+export const RETAILER_IDS = [...adapters.keys()] as const;
+
+/**
+ * Coto is not a VTEX store. Anonymous Constructor search was probed and recorded;
+ * the Oracle ATG cart was not. See probes/coto-vs-jumbo-2026-11-17.md.
+ */
+export const UNSUPPORTED: Record<string, string> = {
+  coto:
+    'Coto is not a VTEX store, so getAdapter has no Oracle ATG cart. Search is Constructor.io ' +
+    '(catalog/coto.ts). A Changuito-held basket of Coto catalog lines is catalog/coto-cart.ts. ' +
+    'The ATG cart, the store link and payment are not implemented.',
+};
+
+export function getAdapter(id: string): RetailerAdapter {
+  const a = adapters.get(id);
+  if (a) return a;
+  const why = UNSUPPORTED[id];
+  throw new Error(
+    why
+      ? `Retailer "${id}" is not supported yet. ${why}`
+      : `Unknown retailer "${id}". Supported: ${RETAILER_IDS.join(', ')}.`,
+  );
+}
+
+export function listRetailers() {
+  return VTEX_STORES.map((s) => ({ id: s.id, name: s.displayName, host: s.host }));
+}

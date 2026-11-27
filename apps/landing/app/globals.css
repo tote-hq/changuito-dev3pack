@@ -1,0 +1,48 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: light;
+  background: #fafaf7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #fafaf7;
+  color: #2a1a14;
+}
+
+body {
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* /reportarbug and /whitelist. The document must not scroll: on iOS the
+   layout viewport stays full height when the keyboard opens, Safari pans
+   it, and the autofill pill is left over the fields. The form shell scrolls
+   instead. Other landing pages keep the document scroller. */
+html:has([data-testid='bug-report-screen']),
+html:has([data-testid='bug-report-screen']) body,
+html:has([data-testid='whitelist-screen']),
+html:has([data-testid='whitelist-screen']) body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  html:has([data-testid='bug-report-screen']),
+  html:has([data-testid='whitelist-screen']) {
+    scroll-behavior: auto;
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "name": "changuito",
+  "private": true,
+  "version": "0.1.0",
+  "description": "An agent that shops Argentine supermarkets over MCP and settles in USDC on Stellar.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @changuito/web",
+    "dev:landing": "npm run dev -w @changuito/landing",
+    "build": "npm run build -w @changuito/web",
+    "build:landing": "npm run build -w @changuito/landing",
+    "start": "npm run start -w @changuito/web",
+    "test": "npm test -w @changuito/mcp && npm test -w @changuito/trust && npm test -w @changuito/web && npm test -w @changuito/landing",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:compare": "COMPARE_E2E=1 playwright test --project=compare",
+    "test:e2e:dual-checkout": "DUAL_CHECKOUT_E2E=1 playwright test --project=dual-checkout",
+    "db:migrate": "node scripts/db.mjs migrate",
+    "smoke:compare": "node scripts/compare-smoke.mjs",
+    "config": "node scripts/config.mjs",
+    "wallet": "node scripts/wallet.mjs",
+    "db:status": "node scripts/db.mjs status",
+    "db:invariants": "node scripts/db-invariants.mjs",
+    "db:archive": "node --experimental-strip-types scripts/db-chat-archive.mts",
+    "contracts:build": "stellar contract build --manifest-path contracts/Cargo.toml",
+    "contracts:test": "cargo test --manifest-path contracts/Cargo.toml",
+    "deploy:testnet": "./scripts/deploy.sh testnet",
+    "deploy:mainnet": "./scripts/deploy.sh mainnet",
+    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.55.1"
+  }
+}

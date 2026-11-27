@@ -1,0 +1,93 @@
+import { expect, test } from '@playwright/test';
+
+import { emailLoginCode, optionalEnv } from './support/env';
+import { collectPageErrors, expectNoPageErrors } from './support/page-errors';
+import { POLLAR } from './support/pollar-copy';
+
+/**
+ * Pollar 0.11 (the widget on app.changuito.me) has no password field.
+ * Email login sends a 6-digit code. `CHANGUTO_E2E_PASSWORD` is only typed
+ * when it is exactly six digits (or `CHANGUTO_E2E_OTP` is set). Otherwise
+ * the test still opens the email path and stops at the code step.
+ *
+ * Traces, video, and screenshots stay off: this repo is public and a failed
+ * auth run must not publish the test inbox or the code as an artifact.
+ */
+test.use({ trace: 'off', video: 'off', screenshot: 'off' });
+
+test.describe('app auth', () => {
+  test.describe.configure({ retries: 0, timeout: 90_000 });
+
+  test('email login reaches signed-in chrome when a code is available', async ({ page }) => {
+    const email = optionalEnv('CHANGUTO_E2E_EMAIL');
+    const password = optionalEnv('CHANGUTO_E2E_PASSWORD');
+    test.skip(!email || !password, 'CHANGUTO_E2E_EMAIL and CHANGUTO_E2E_PASSWORD are not both set');
+    test.slow();
+
+    const errors = collectPageErrors(page);
+    await page.addInitScript(() => localStorage.setItem('changuito:onboarding:v1', '1'));
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Empezá a comprar' }).click();
+
+    const modal = page.locator('.pollar-modal');
+    await expect(modal.getByText(POLLAR.subtitle)).toBeVisible();
+
+    // The card renders "Loading..." before Pollar finishes its config fetch.
+    const emailInput = modal.getByPlaceholder(POLLAR.emailPlaceholder);
+    const settled = emailInput
+      .or(modal.getByRole('button', { name: 'Google' }))
+      .or(modal.getByRole('button', { name: 'Wallet' }));
+    await expect(settled).toBeVisible({ timeout: 20_000 });
+
+    if (!(await emailInput.isVisible())) {
+      test.info().annotations.push({
+        type: 'limitation',
+        description:
+          'The Pollar modal did not offer an email field. Google or wallet login is what the widget showed; those are not driven from CI.',
+      });
+      test.skip(true, 'Pollar email login is not offered in this build');
+    }
+
+    await emailInput.fill(email!);
+    await modal.getByRole('button', { name: POLLAR.submit }).click();
+
+    const codePrompt = modal.getByText(POLLAR.codePrompt);
+    await expect(codePrompt).toBeVisible({ timeout: 25_000 });
+
+    const code = emailLoginCode();
+    if (!code) {
+      test.info().annotations.push({
+        type: 'limitation',
+        description:
+          'Email was submitted and Pollar asked for a 6-digit code. CHANGUTO_E2E_PASSWORD is not that code, and Pollar has no password field, so signed-in chrome was not asserted.',
+      });
+      expectNoPageErrors(errors);
+      return;
+    }
+
+    // Whether this account may use the test faucet is the server's call
+    // (the wallet row, or config.faucet_open_to_all). Listen before signing in: the widget
+    // asks as soon as the wallet address exists. A build without the GET
+    // (before #51) never answers, and always showed the button.
+    const faucetAccess = page
+      .waitForResponse((r) => r.url().includes('/api/faucet?address='), { timeout: 45_000 })
+      .then(async (r) => (r.ok() ? ((await r.json()) as { allowed?: boolean }) : null))
+      .catch(() => null);
+
+    const firstDigit = modal.locator('input.pollar-code-input').first();
+    await firstDigit.click();
+    await page.keyboard.type(code, { delay: 40 });
+
+    await expect(page.getByRole('button', { name: 'Salir' })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText('Tu pago')).toBeVisible();
+    const fund = page.getByRole('button', { name: 'Cargar USDC' });
+    const access = await faucetAccess;
+    if (access?.allowed === false) {
+      // Not a tester: no button, rather than one the API would refuse.
+      await expect(fund).toHaveCount(0);
+    } else {
+      await expect(fund).toBeVisible();
+    }
+    expectNoPageErrors(errors);
+  });
+});

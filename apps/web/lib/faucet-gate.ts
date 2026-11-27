@@ -1,0 +1,121 @@
+import type { NetworkId } from './deployments.ts';
+import { authorizeFaucet, faucetView } from './faucet-auth.ts';
+import { MAX_CHUNKS, MIN_CHUNKS } from './faucet-policy.ts';
+import type { FaucetAccess, FaucetProof } from './faucet-proof.ts';
+import { requireHuman } from './human-gate.ts';
+import { guestTurnCounter, limiterUnavailableResponse, takeQuota, type TurnCounter } from './login-gate.ts';
+import { requestNetwork } from './server-network.ts';
+import { addressKind } from './stellar.ts';
+import { faucetAdmitted, faucetOpenToAll, walletStanding, type WalletDirectory } from './wallet-record.ts';
+
+/**
+ * Everything POST /api/faucet decides before it touches the chain.
+ *
+ * Its own module so the refusals can be tested as a route: the handler
+ * itself imports the contract bindings, which ship as TypeScript inside
+ * node_modules and cannot load under `--experimental-strip-types`.
+ *
+ * Returns the address to fund, or the Response to send instead. Nothing
+ * here signs, funds or mints.
+ *
+ * The cooldown used to be a Map per lambda, which a cold start or a second
+ * instance forgot. It now lives in the shared counter, with a global hourly
+ * ceiling on top, and both refuse when the store cannot answer.
+ */
+
+/** One grant per wallet per minute. */
+export const FAUCET_COOLDOWN_SECONDS = 60;
+
+/** Every tester together, per hour. The hot key signs each one. */
+export const FAUCET_GRANTS_PER_HOUR = 20;
+
+/** What the widget reads. A banned wallet and a wallet the database has not granted both hide the button. */
+export async function faucetButton(
+  address: string,
+  env: NodeJS.ProcessEnv,
+  network: NetworkId,
+  wallets?: WalletDirectory,
+): Promise<FaucetAccess> {
+  const openToAll = await faucetOpenToAll(env, wallets);
+  if (!addressKind(address)) return faucetView(network, { admitted: false, openToAll });
+  const standing = await walletStanding(address, env, network, wallets);
+  if (standing.banned) return { mode: 'disabled', allowed: false };
+  return faucetView(network, { admitted: faucetAdmitted(standing, openToAll), openToAll });
+}
+
+export async function gateFaucet(
+  req: Request,
+  env: NodeJS.ProcessEnv = process.env,
+  now: number = Date.now(),
+  store: TurnCounter = guestTurnCounter(env),
+  wallets?: WalletDirectory,
+): Promise<{ address: string; kind: 'account' | 'contract'; network: NetworkId; chunks: number } | Response> {
+  const gated = await requireHuman(req, env);
+  if (gated) return gated;
+
+  let address: string;
+  let proof: Partial<FaucetProof> | null = null;
+  let networkParam: unknown = undefined;
+  let chunks = 1;
+  try {
+    const body = (await req.json()) as { address?: unknown; proof?: unknown; network?: unknown; chunks?: unknown };
+    address = typeof body.address === 'string' ? body.address : '';
+    if (body.proof && typeof body.proof === 'object') proof = body.proof as Partial<FaucetProof>;
+    networkParam = body.network;
+    if (body.chunks !== undefined && body.chunks !== null) {
+      if (
+        typeof body.chunks !== 'number' ||
+        !Number.isInteger(body.chunks) ||
+        body.chunks < MIN_CHUNKS ||
+        body.chunks > MAX_CHUNKS
+      ) {
+        return Response.json(
+          { error: `chunks must be an integer from ${MIN_CHUNKS} to ${MAX_CHUNKS}.` },
+          { status: 400 },
+        );
+      }
+      chunks = body.chunks;
+    }
+  } catch {
+    return Response.json({ error: 'expected a JSON body' }, { status: 400 });
+  }
+
+  // Absent means the default; present-but-unserved is refused, never coerced.
+  const asked = requestNetwork(networkParam);
+  if (!asked.ok) return Response.json({ error: 'network_not_served' }, { status: 400 });
+  const network = asked.network;
+
+  const kind = addressKind(address);
+  if (!kind) return Response.json({ error: 'not a Stellar address' }, { status: 400 });
+
+  // Read only. Login is what inserts a row, after a proof. A bare address
+  // posted here must not become a wallet.
+  const standing = await walletStanding(address, env, network, wallets);
+  if (standing.banned) {
+    return Response.json({ error: 'wallet_banned', message: 'Esta cuenta no puede usar Changuito.' }, { status: 403 });
+  }
+
+  const openToAll = await faucetOpenToAll(env, wallets);
+  const auth = authorizeFaucet({
+    address,
+    proof,
+    now,
+    net: network,
+    admitted: faucetAdmitted(standing, openToAll),
+  });
+  if (!auth.ok) return Response.json({ error: auth.error, message: auth.message }, { status: auth.status });
+
+  const wait = 'Esperá un momento antes de volver a pedir fondos.';
+  const mine = await takeQuota(`changuito:faucet:${address}`, 1, FAUCET_COOLDOWN_SECONDS, store);
+  if (mine === 'unavailable') return limiterUnavailableResponse();
+  // `note` because the widget reads a 429 as an answer, not a failure.
+  if (mine === 'limited') return Response.json({ error: 'rate_limited', message: wait, note: wait }, { status: 429 });
+  const all = await takeQuota('changuito:faucet:global', FAUCET_GRANTS_PER_HOUR, 3600, store);
+  if (all === 'unavailable') return limiterUnavailableResponse();
+  if (all === 'limited') {
+    const busy = 'Se alcanzó el tope de cargas de prueba por ahora. Probá más tarde.';
+    return Response.json({ error: 'rate_limited', message: busy, note: busy }, { status: 429 });
+  }
+
+  return { address, kind, network, chunks };
+}

@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
+
+import { PUBLIC_LEGAL, SUPPORT_EMAIL } from '@changuito/trust';
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
+
+test('the shopper footer and the in-app privacy page link out to the public legal pages', () => {
+  const page = readFileSync(join(root, 'app/page.tsx'), 'utf8');
+  const footerStart = page.indexOf('<footer className="app-footer"');
+  const footerEnd = page.indexOf('</footer>', footerStart);
+  const footer = page.slice(footerStart, footerEnd);
+  assert.match(footer, /<a className="app-legal" href="\/privacidad">/);
+  assert.match(footer, /PUBLIC_LEGAL\.terms/);
+  assert.match(footer, /PUBLIC_LEGAL\.deletion/);
+  assert.equal(PUBLIC_LEGAL.deletion.en, 'https://www.changuito.me/delete-account');
+  assert.equal(PUBLIC_LEGAL.deletion.es, 'https://www.changuito.me/eliminar-cuenta');
+  assert.equal(PUBLIC_LEGAL.terms.en, 'https://www.changuito.me/terms');
+  assert.equal(PUBLIC_LEGAL.privacy.es, 'https://www.changuito.me/privacidad');
+  assert.equal(SUPPORT_EMAIL, 'simonethg@changuito.me');
+
+  const privacy = readFileSync(join(root, 'app/privacidad/page.tsx'), 'utf8');
+  assert.match(privacy, /mailto:\$\{SUPPORT_EMAIL\}/);
+  assert.match(privacy, /PUBLIC_LEGAL\.deletion/);
+  assert.match(privacy, /PUBLIC_LEGAL\.privacy/);
+  assert.match(privacy, /href="\/"/);
+});

@@ -1,0 +1,1284 @@
+.page {
+  --ink: #2a1a14;
+  /* Warm gray, 7.2:1 on --paper. Body secondary text has to clear WCAG AA (4.5:1). */
+  --ink-soft: #5c534c;
+  --sun: #f4b942;
+  --sun-hover: #e3a82a;
+  --sun-active: #d39a1c;
+  --clay: #e07a5f;
+  --paper: #fafaf7;
+  --line: rgba(42, 26, 20, 0.14);
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+
+.page ::selection {
+  background: var(--sun);
+  color: var(--ink);
+}
+
+.page :focus {
+  outline: none;
+}
+
+.page :focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.skip {
+  position: absolute;
+  left: 16px;
+  top: 12px;
+  z-index: 40;
+  transform: translateY(-160%);
+  background: var(--sun);
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+  padding: 12px 16px;
+  border-radius: 999px;
+  min-height: 44px;
+}
+
+.skip:focus {
+  transform: none;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--paper);
+  border-bottom: 1px solid rgba(42, 26, 20, 0.08);
+}
+
+.headerInner {
+  position: relative;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logoLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  min-width: 44px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logoMark {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+.logoWordmark {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+.logoWord {
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.menuButton {
+  display: none;
+  margin-left: auto;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.menuButton:hover {
+  background: rgba(42, 26, 20, 0.06);
+}
+
+.menuGlyph {
+  display: block;
+}
+
+.nav {
+  margin-left: auto;
+}
+
+.navList {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 12px;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 999px;
+}
+
+.navLink:hover {
+  background: rgba(42, 26, 20, 0.06);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 22px;
+  background: var(--sun);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+  text-decoration: none;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  transition: background-color 150ms ease;
+}
+
+.cta:hover {
+  background: var(--sun-hover);
+}
+
+.cta:active {
+  background: var(--sun-active);
+}
+
+.ctaMascot {
+  height: 1.4em;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  flex: none;
+}
+
+.heroInner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 48px 24px 32px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+  gap: 28px 40px;
+  align-items: center;
+}
+
+.h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 3.3vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.sub {
+  margin: 20px 0 0;
+  max-width: 38ch;
+  font-size: 1.125rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.heroActions {
+  display: flex;
+  align-items: center;
+  margin-top: 28px;
+}
+
+.section {
+  padding: 80px 24px;
+}
+
+.sectionInner,
+.bofuInner,
+.footerInner {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.anchor {
+  scroll-margin-top: 96px;
+}
+
+.h2 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.lead {
+  margin: 16px 0 0;
+  max-width: 42ch;
+  font-size: 1.125rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.steps,
+.uses {
+  list-style: none;
+  margin: 32px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.steps {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.uses {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 24px;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stepHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stepNo {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.stepIcon {
+  color: var(--ink);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.cardBody {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.assurance {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 24px 0 0;
+  max-width: 62ch;
+  padding: 16px 20px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--sun);
+  background: #fff;
+  color: var(--ink);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.assuranceIcon {
+  flex: none;
+  margin-top: 2px;
+}
+
+.faqList {
+  margin-top: 8px;
+  border-top: 1px solid var(--line);
+  max-width: 760px;
+}
+
+.faqItem {
+  border-bottom: 1px solid var(--line);
+}
+
+.faqHeading {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.faqButton {
+  width: 100%;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.125rem;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.faqMark {
+  flex: none;
+  width: 32px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.faqPanel {
+  padding: 0 48px 16px 0;
+  max-width: 62ch;
+  color: var(--ink-soft);
+}
+
+.faqPanel p {
+  margin: 0;
+}
+
+.bofu {
+  padding: 24px 24px 88px;
+  text-align: center;
+}
+
+.bofu .h2,
+.bofu .lead {
+  margin-inline: auto;
+}
+
+.bofuBrand {
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 auto 24px;
+}
+
+.bofuBrand .logoMark {
+  height: 160px;
+}
+
+.bofuBrand .logoWord {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+}
+
+.footerBrand .logoMark {
+  height: 32px;
+}
+
+.footerBrand .logoWord {
+  font-size: 1.05rem;
+}
+
+.bofuCta {
+  margin-top: 28px;
+}
+
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 40px 24px 48px;
+  background: var(--paper);
+}
+
+.footerInner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px 32px;
+}
+
+/* Partner lockup. The link is the 44px target; the wordmark inside is shorter
+   so the row stays one line next to the nav. Mono marks are the muted brown
+   at .75 (about 5.3:1 on --paper). Superteam stays a color badge. */
+.powered {
+  display: flex;
+  flex: 1 1 280px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 8px;
+  min-width: 0;
+}
+
+.poweredLabel {
+  margin-right: 4px;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.poweredList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.poweredList > li {
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.poweredLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.poweredLink img {
+  display: block;
+  height: 22px;
+  width: auto;
+}
+
+.mono img {
+  opacity: 0.75;
+}
+
+.color img {
+  height: 32px;
+  width: 32px;
+  border-radius: 6px;
+  opacity: 1;
+}
+
+.poweredLink:hover {
+  background: rgba(42, 26, 20, 0.06);
+}
+
+.footerMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.footerNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  justify-content: flex-end;
+}
+
+.footerLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 10px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.footerLink {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.logoLink:focus-visible,
+.footerLink:focus-visible,
+.socialLink:focus-visible,
+.poweredLink:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.footerSocial {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  justify-content: flex-end;
+}
+
+/* 44×44 at least (WCAG 2.5.5). The X link is a single letter, so padding
+   alone left it about 32px wide; min-width is what makes the square. */
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 10px;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.socialLink:hover {
+  color: var(--ink-soft);
+}
+
+/* Text-only social link: the word is the control, so it needs an underline. */
+.socialText {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.socialIcon {
+  flex-shrink: 0;
+}
+
+.fine {
+  max-width: 1120px;
+  margin: 16px auto 0;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.fact {
+  margin: 20px 0 0;
+  max-width: 36ch;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
+.compareLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(240px, 0.9fr);
+  gap: 28px 40px;
+  align-items: center;
+}
+
+.compareCard {
+  margin: 20px 0 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.compareLabel {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.compareRow {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.compareChain {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.barTrack {
+  display: block;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(42, 26, 20, 0.08);
+  overflow: hidden;
+}
+
+.barShort,
+.barLong {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ink);
+}
+
+.barShort {
+  width: 71%;
+}
+
+.barLong {
+  width: 100%;
+}
+
+/* Product demo. Final frame is the default so reduced motion, print and
+   a failed animation still show the cart. The loop runs only when the
+   visitor has no preference against motion. 20s, opacity and transform. */
+.demo {
+  margin: 0;
+  width: 100%;
+  max-width: 440px;
+  justify-self: end;
+}
+
+.demoWindow {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(42, 26, 20, 0.08);
+}
+
+.demoTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+.demoMark {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: block;
+}
+
+.demoName {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.demoThread {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.demoUser {
+  align-self: flex-end;
+  max-width: 88%;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 14px 14px 2px 14px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.demoStatus {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-style: italic;
+  line-height: 1.35;
+}
+
+.demoDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ink);
+  flex: none;
+}
+
+.demoGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.demoCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 72px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.demoChain {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.demoProduct {
+  font-size: 0.8125rem;
+  line-height: 1.3;
+}
+
+.demoPrice,
+.demoAmount,
+.demoTotal strong {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.demoPrice {
+  font-size: 0.9375rem;
+}
+
+.demoCart {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.demoCartHead,
+.demoCartFoot {
+  padding: 8px 12px;
+}
+
+.demoCartHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.demoCartTitle {
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.demoLines {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.demoLines li {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 4px 12px;
+  font-size: 0.8125rem;
+}
+
+.demoQty {
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.demoCartFoot {
+  border-top: 1px solid var(--line);
+}
+
+.demoTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.875rem;
+}
+
+.demoTotal strong {
+  font-size: 1rem;
+}
+
+.demoActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.demoPay,
+.demoPayGhost,
+.demoSend {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.demoPay,
+.demoSend {
+  background: var(--sun);
+  color: var(--ink);
+}
+
+.demoPayGhost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.demoComposer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border-top: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.demoField {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+}
+
+.beatHold {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .beatHold {
+    opacity: 0;
+    animation-duration: 20s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-fill-mode: both;
+  }
+
+  .beatUser {
+    animation-name: demo-user;
+  }
+
+  .beatCard1 {
+    animation-name: demo-card-1;
+  }
+
+  .beatCard2 {
+    animation-name: demo-card-2;
+  }
+
+  .beatCard3 {
+    animation-name: demo-card-3;
+  }
+
+  .beatCard4 {
+    animation-name: demo-card-4;
+  }
+
+  .beatGrid {
+    animation-name: demo-grid;
+  }
+
+  .beatCart {
+    animation-name: demo-cart;
+  }
+
+  .beatPay {
+    animation-name: demo-pay;
+  }
+
+  .beatStatus {
+    display: flex;
+    opacity: 0;
+    max-height: 0;
+    animation: demo-status 20s linear infinite both;
+  }
+
+  .demoDot {
+    animation: demo-pulse 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes demo-user {
+  0%, 3% { opacity: 0; transform: translateY(8px); }
+  7%, 94% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; }
+}
+
+@keyframes demo-status {
+  0%, 8% { opacity: 0; max-height: 0; }
+  14%, 32% { opacity: 1; max-height: 2.6rem; }
+  40%, 100% { opacity: 0; max-height: 0; }
+}
+
+@keyframes demo-card-1 {
+  0%, 36% { opacity: 0; transform: translateY(8px); }
+  42%, 94% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; }
+}
+
+@keyframes demo-card-2 {
+  0%, 42% { opacity: 0; transform: translateY(8px); }
+  48%, 94% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; }
+}
+
+@keyframes demo-card-3 {
+  0%, 48% { opacity: 0; transform: translateY(8px); }
+  54%, 94% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; }
+}
+
+@keyframes demo-card-4 {
+  0%, 54% { opacity: 0; transform: translateY(8px); }
+  60%, 94% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; }
+}
+
+@keyframes demo-grid {
+  0%, 34% { opacity: 0; max-height: 0; }
+  42%, 94% { opacity: 1; max-height: 240px; }
+  100% { opacity: 0; max-height: 0; }
+}
+
+@keyframes demo-cart {
+  0%, 62% { opacity: 0; max-height: 0; transform: translateY(10px); }
+  70%, 94% { opacity: 1; max-height: 280px; transform: translateY(0); }
+  100% { opacity: 0; max-height: 0; }
+}
+
+@keyframes demo-pay {
+  0%, 72% { opacity: 0; transform: translateY(6px); }
+  78%, 94% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; }
+}
+
+@keyframes demo-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+@media (max-width: 1000px) {
+  .steps,
+  .uses {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .logoMark {
+    height: 32px;
+  }
+
+  .logoWordmark {
+    height: 32px;
+  }
+
+  .logoWord {
+    font-size: 1.15rem;
+  }
+
+  .menuButton {
+    display: inline-flex;
+  }
+
+  .nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 8px 16px 16px;
+    background: var(--paper);
+    border-bottom: 1px solid rgba(42, 26, 20, 0.08);
+  }
+
+  .nav.isOpen {
+    display: block;
+  }
+
+  .navList {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .navList .cta {
+    width: 100%;
+  }
+
+  .heroInner {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+    padding: 20px 20px 28px;
+    gap: 20px;
+  }
+
+  .h1 {
+    font-size: clamp(1.85rem, 7vw, 2.4rem);
+  }
+
+  .h2 {
+    font-size: clamp(1.65rem, 6vw, 2.1rem);
+  }
+
+  .sub {
+    margin-top: 12px;
+    font-size: 1.0625rem;
+  }
+
+  .heroActions {
+    margin-top: 16px;
+  }
+
+  .demo {
+    justify-self: center;
+    max-width: 440px;
+  }
+
+  .section {
+    padding: 56px 20px;
+  }
+
+  .compareLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .steps,
+  .uses {
+    grid-template-columns: 1fr;
+  }
+
+  .headerInner {
+    padding: 8px 16px;
+  }
+
+  .footerInner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .powered {
+    justify-content: flex-start;
+    width: 100%;
+    flex: none;
+  }
+
+  .footerMeta {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .footerNav,
+  .footerSocial {
+    justify-content: flex-start;
+  }
+}
+
+/* iPhone 13/14 and similar (~390×844): headline, then the product demo. */
+@media (max-width: 480px) {
+  .page {
+    --header-h: 52px;
+  }
+
+  .header {
+    height: var(--header-h);
+    box-sizing: border-box;
+  }
+
+  .headerInner {
+    height: 100%;
+    padding: 4px 16px;
+    box-sizing: border-box;
+  }
+
+  .logoMark {
+    height: 28px;
+  }
+
+  .logoWordmark {
+    height: 28px;
+  }
+
+  .logoWord {
+    font-size: 1rem;
+  }
+
+  .heroInner {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    box-sizing: border-box;
+    height: auto;
+    max-height: none;
+    padding: 16px 16px 24px;
+    gap: 16px;
+  }
+
+  .h1 {
+    font-size: 1.85rem;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+  }
+
+  .sub {
+    margin-top: 10px;
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  .heroActions {
+    margin-top: 14px;
+  }
+
+  .cta {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+
+  .demo {
+    width: 100%;
+    max-width: none;
+  }
+
+  .fact {
+    font-size: 1.0625rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page,
+  .page * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  .beatHold,
+  .beatPay {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .beatStatus {
+    display: none !important;
+  }
+}
+
+/* The page stays on brand light (`color-scheme: light` in globals). When the
+   OS is dark, this band still has to clear WCAG AA on its own canvas:
+   #fafaf7 on #241812 is about 16.5:1, #efe6df about 14:1, and the focus
+   ring #f4b942 about 9.8:1. Mono wordmarks invert to white; the color
+   badge does not. */
+@media (prefers-color-scheme: dark) {
+  .footer {
+    background: #241812;
+    border-top-color: rgba(250, 250, 247, 0.16);
+  }
+
+  .footerLink,
+  .socialLink,
+  .footerBrand .logoWord {
+    color: #fafaf7;
+  }
+
+  .socialLink:hover,
+  .footerLink:hover {
+    color: #e7ddd6;
+  }
+
+  .fine,
+  .poweredLabel {
+    color: #efe6df;
+  }
+
+  .mono img {
+    filter: brightness(0) invert(1);
+    opacity: 0.92;
+  }
+
+  .poweredLink:hover {
+    background: rgba(250, 250, 247, 0.08);
+  }
+
+  .footer :focus-visible {
+    outline: 3px solid #f4b942;
+    outline-offset: 3px;
+  }
+}

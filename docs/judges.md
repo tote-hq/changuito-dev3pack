@@ -1,0 +1,160 @@
+# Reviewing changuito
+
+A path through the repo for someone with fifteen minutes, and the evidence for
+every claim the submission makes. Nothing here asks you to take our word for
+something — each row points at a file, a command, or a ledger entry.
+
+If you read one other thing, make it the
+[**honesty section in the README**](../README.md#where-this-is-honest-about-itself).
+It is at the top of that file on purpose: what is operator-run rather than
+automated is stated by us, before you find it.
+
+---
+
+## 0. Submission facts
+
+| | |
+|---|---|
+| **Live app** | [app.changuito.me](https://app.changuito.me) — signed out is testnet and costs the visitor nothing |
+| **Marketing site** | [www.changuito.me](https://www.changuito.me) |
+| **Repository** | [github.com/tote-hq/stellar](https://github.com/tote-hq/stellar) — MIT. The Solana port lives in [tote-hq/solana](https://github.com/tote-hq/solana); only Stellar work lands here, and PRs labeled `shared` are mirrored between the two |
+| **Built by** | [SimonethG](https://www.linkedin.com/in/simonethg/) and [Fabio](https://www.linkedin.com/in/fabio-laura-yavi/), in Argentina |
+| **Networks** | Stellar **testnet** (preview, and the deployed contracts) and **mainnet** (production, real USDC) |
+| **What is on-chain** | a classic USDC payment with a memo, confirmed by reading Horizon. No contract sits on the money rail, and the deployment holds no signing key on mainnet |
+| **Contracts** | escrow [`CA4BDF4U…N72S`](https://stellar.expert/explorer/testnet/contract/CA4BDF4U65OHCO6AB4KRJWBRZ4BJBZURDFNFKJDEZAKQRCUNJZFLN72S) *(testnet, mintable `mock_usdc`, mounted on the login-network checkout; the previous deploy `CCA3ES6ANWAAJXB436XTSPGFRGX5GDZLHC7UOF25K4B5OFDJML4JG7EX` is retired)* · mintable USDC [`CAOPLEE4…BNN3E`](https://stellar.expert/explorer/testnet/contract/CAOPLEE4NVOVEBYRO7NHG5K4FEML5O5C5AATYBK4FCDLYRAJFZWBNN3E) |
+| **SEPs used** | SEP-53 (signed messages, for identity), SEP-41 (the token interface), SEP-7 (the receive URI) |
+| **Wallet** | Pollar (`@pollar/react` 0.11.3) — email or Google login, so a shopper needs no prior wallet |
+| **Tests** | `npm test` → 603 · `npm run contracts:test` → 34. Neither needs an API key |
+| **Pitch video** | sources in [`creatives/`](../creatives) (Remotion, three cuts: ES, EN, promo). There is no hosted link in this repo — `npm run render` in any of those folders produces the mp4 |
+
+## 1. The one-paragraph version
+
+An Argentine supermarket takes pesos through a card form. Somebody holding
+dollars on Stellar cannot pay with them, and the gap is not a swap — it is the
+last mile: the store wants a card, at a peso amount nobody knows until a
+delivery slot is picked, from a person whose profile the store already holds.
+
+changuito is a chat agent that shops the store over
+[MCP](https://modelcontextprotocol.io), opens the store's *own* checkout inside
+the app, reads the exact payable total from the store's cart server-side, takes
+that amount in USDC on Stellar, and hands back a card number for the store's
+payment form. The store changes nothing. changuito custodies nothing but a
+deposit account.
+
+## 2. Fifteen minutes, in order
+
+| Minutes | Do this | What it shows |
+|---|---|---|
+| 0–3 | Open [app.changuito.me](https://app.changuito.me) signed out and ask for a basket in Spanish — *"armá un desayuno por menos de $10.000"* | The agent is driving a real store. Prices and stock are Día's, live. This is **preview**: testnet, and we pay |
+| 3–6 | Press *Pagar* and watch the three-step rail: **entrá a tu cuenta → elegí el envío → pagá el importe** | The store's real checkout, in an iframe. No amount is quoted until the store has one |
+| 6–9 | Read [`apps/web/lib/order-check.ts`](../apps/web/lib/order-check.ts) and [`apps/web/lib/test/order-check.test.ts`](../apps/web/lib/test/order-check.test.ts) | How the app reads a cart it cannot see, cookie-free — and the test that pins that no profile data crosses back out |
+| 9–12 | Read [`apps/web/lib/ledger/`](../apps/web/lib/ledger/) and [`apps/web/lib/pay/`](../apps/web/lib/pay/) | The money half. Quote and card go through a ledger port; Horizon is today's adapter; the matcher is pure and tested separately from the fetch |
+| 12–15 | Run the commands in [§5](#5-verify-it-yourself) | The contract config, the ledger entries, and the test suites |
+
+## 3. Claim → evidence
+
+| The claim | Where to check it |
+|---|---|
+| It is a real MCP server, spoken over the real protocol | [`apps/web/lib/mcp/boot.ts`](../apps/web/lib/mcp/boot.ts) — `InMemoryTransport.createLinkedPair()`, so `initialize` / `tools/list` / `tools/call` actually happen. Importing the functions would have been shorter |
+| The supermarket integration is not a mock | [`packages/mcp/`](../packages/mcp) — four Argentine VTEX chains, 304 tests, written before this app existed |
+| The model cannot put a wrong price on screen | [`apps/web/lib/agent/render-tools.ts`](../apps/web/lib/agent/render-tools.ts) — render tools take **identifiers only**. A hallucinated price has no argument to travel in |
+| The shopper is charged the store's exact total, envío included | [`apps/web/lib/pay/deposit-rail.ts`](../apps/web/lib/pay/deposit-rail.ts) — ignores the client's figure whenever it can read the store's. Commit `16ee1a8` is the fix and says why |
+| Confirmation is trustless | [`apps/web/lib/ledger/`](../apps/web/lib/ledger/) — public ledger read via the port (Horizon today). No webhook, no secret, no reconciliation. You can check any deposit yourself |
+| Identity is proven, not claimed | [`apps/web/lib/wallet-proof-verify.ts`](../apps/web/lib/wallet-proof-verify.ts) (SEP-53) and the four gates that use it: `deposit-gate`, `network-access`, `faucet-auth`, `settle-gate` |
+| A deposit can buy exactly one card | [`apps/web/lib/card.ts`](../apps/web/lib/card.ts) — the claim is a conditional `UPDATE … where card_id is null`, not a read-then-write, because two tabs pressing the button together is the ordinary case |
+| Card numbers are never written down | The app does not issue a card. `packages/mcp/src/secure/redact.ts` masks PAN-shaped runs, and the checkout server stops before typing a payment form. |
+| Mainnet is closed by default | [`apps/web/lib/network-access.ts`](../apps/web/lib/network-access.ts) — in production an empty allowlist means nobody. The Worker sets `NODE_ENV=production`, so that is the live app |
+| The contracts do what the README says | [§5](#5-verify-it-yourself) — ask the deployed wasm, not the source |
+
+## 4. What is real, and what is not
+
+Stated plainly, because a judge finding this out unaided is worse than a judge
+being told.
+
+| | Status |
+|---|---|
+| The supermarket catalogue, cart and checkout | **Real.** Día's own API and Día's own checkout page |
+| The exact payable total, envío included | **Real.** Read server-side from VTEX's public `orderForm` |
+| The USDC payment and its confirmation | **Real.** A classic Stellar payment, matched by memo, confirmed from Horizon |
+| Identity and the gates on real money | **Real.** SEP-53 signatures, allowlisted in production |
+| The escrow contract | **Deployed on testnet over the mintable `mock_usdc` and mounted on the login-network checkout** (`PaymentModal` calls `open`). Other networks keep the memo deposit in [`lib/deposit.ts`](../apps/web/lib/deposit.ts) |
+| **Paying Día** | The app does not issue a card. An admitted manual checkout (allowlist `shared_card_member`) lets the shopper pay Día with their own card. Everyone else gets a demo that stops at the payment form. |
+| Refunds | **By hand.** No automated outbound payment and no Stellar secret in the production deployment |
+| The receipt's per-order link | **Inferred by one character.** `orderRef` is `${orderGroup}-01`; degrades to the order list, never a 404 |
+
+## 5. Verify it yourself
+
+Ask the deployed contract who can settle and where money lands. `--send=no`
+simulates only: it signs nothing, costs nothing, and any funded account works as
+the source.
+
+```bash
+stellar contract invoke --network testnet \
+  --id CA4BDF4U65OHCO6AB4KRJWBRZ4BJBZURDFNFKJDEZAKQRCUNJZFLN72S \
+  --source-account GBXBAOFWG4Y4ZQEDXH73BACYYCE7ODSKXHLXYVRPLJOYFRDCPWHGYGN5 \
+  --send=no -- config
+```
+
+The deployed wasm's own interface, rather than a copy of the source:
+
+```bash
+stellar contract info interface --network testnet \
+  --id CA4BDF4U65OHCO6AB4KRJWBRZ4BJBZURDFNFKJDEZAKQRCUNJZFLN72S
+```
+
+Re-derive the receipt hash stored by the settle linked in the README:
+
+```bash
+printf 'changuito/receipt/v1\nretailer|dia\ncart|live-check-1\nhandoff|https://diaonline.supermercadosdia.com.ar/checkout?orderFormId=live-check-1\nsettled|2026-09-21T07:22:14.394Z\n' | shasum -a 256
+# 881ae41cb172e10778dd6810e5c3e9be5fef54b266cb0686f4da446109f978d0
+```
+
+And the suites, from a clean clone with only `npm install`:
+
+```bash
+npm test                 # 603: mcp 180 · trust 1 · web 422
+npm run contracts:test   #   34: escrow 19 · mock_usdc 15
+npm run build
+```
+
+Neither needs an API key. The web suite runs on `node:test` with
+`--experimental-strip-types`.
+
+## 6. Questions we expect, answered
+
+**Why not settle on-chain with the escrow you already wrote?**
+Because the app cannot prove the basket happened. The store's confirmation page
+is `SAMEORIGIN` and the checkout is cross-origin, so "the basket went through"
+would be the shopper's own word — and an escrow that settles on the buyer's word
+is a custodial box with extra steps. The one unambiguous signal the app *can*
+read is `orderGroup`, server-side, from the public cart document. Wiring that to
+`settle` is the honest next step and it is written up in
+[stellar.md](stellar.md#the-escrow-contract).
+
+**Why a card at all, rather than paying the store in USDC?**
+Día takes cards. That is the whole of it. The card is the adapter between a
+ledger the store has never heard of and the payment form it already has, and it
+is the part a real deployment would replace with an anchor or a direct merchant
+integration — neither of which a hackathon can conjure.
+
+**Why is so much of the reasoning in comments rather than in docs?**
+Because the comments are next to the code that would otherwise be undone. Most
+of them record something that was observed rather than designed: a probe against
+Día's live API on a dated day, a flake that happened one run in sixteen, a fix
+that was reversed. [`CLAUDE.md`](../CLAUDE.md) is the long-form version for the
+agent, and the file headers are the rest.
+
+**Is the AI load-bearing, or decoration?**
+Load-bearing, and the constraint on it is explicit: the model decides *which*
+products to surface and *what* to say, and it is structurally prevented from
+deciding what anything costs. See the render-tools rule above. The first
+question a shopper is asked — their postal code — is answered without a model
+call at all ([`agent/early-ask.ts`](../apps/web/lib/agent/early-ask.ts)),
+because it is the same question every time.
+
+---
+
+## Reaching us
+
+Issues and pull requests on the repository. If something in this document does
+not match what you find, that is a bug in the document and worth filing.
