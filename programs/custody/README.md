@@ -14,8 +14,8 @@ Accounts expected by the client:
 
 Instructions (first byte): `0` lock, `1` settle, `2` refund.
 
-`lock` data after the tag: 32-byte order id, little-endian u64 amount, 32-byte basket hash. The buyer must sign. The vault account is the PDA `["vault", order_id]`, 105 bytes, owned by this program. A second lock fails because the account is no longer empty.
+`lock` data after the tag: 32-byte order id, little-endian u64 amount, 32-byte basket hash. The buyer must sign and pays the rent. `lock` creates the vault account itself: the PDA `["vault", order_id]`, 105 bytes, owned by this program. A client cannot create that address. A second lock finds the account already owned by the program and fails because it is no longer empty.
 
-`lock` moves the USDC from the buyer's token account into the vault token account (owner = the PDA). `settle` moves that amount to the treasury token account. `refund` moves it back to the buyer. Both are signed by the resolver; the program signs the token transfer as the PDA. A second settle fails.
+The client creates the buyer's USDC token account and the vault's USDC token account (owner = the PDA) before `lock`. `lock` moves the USDC from the buyer into the vault token account. `settle` moves that amount to the treasury token account. `refund` moves it back to the buyer. Both are signed by the resolver; the program signs the token transfer as the PDA. A second settle fails.
 
 Clients pass the program id from `SOLANA_ESCROW_ID`. This crate does not embed a deployed address.

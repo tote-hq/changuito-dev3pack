@@ -7,6 +7,9 @@ use solana_program::instruction::{AccountMeta, Instruction};
 use solana_program::program::{invoke, invoke_signed};
 use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
+use solana_program::rent::Rent;
+use solana_program::system_instruction;
+use solana_program::sysvar::Sysvar;
 
 use crate::logic::{
     apply, LogicError, OrderId, Transition, Vault, VaultStatus, RESOLVER, TREASURY, USDC_MINT,
@@ -37,7 +40,8 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) -> Pr
     }
 }
 
-/// 0 buyer (signer), 1 buyer token, 2 vault, 3 vault token, 4 token program, 5 mint.
+/// 0 buyer (signer, pays rent), 1 buyer token, 2 vault, 3 vault token,
+/// 4 token program, 5 mint, 6 system program.
 /// Data: order id (32) || amount (u64 le) || basket hash (32).
 fn lock(program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) -> ProgramResult {
     if data.len() != 32 + 8 + 32 {
@@ -52,6 +56,7 @@ fn lock(program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) -> ProgramRe
     let vault_token = accounts.get(3).ok_or(ProgramError::NotEnoughAccountKeys)?;
     let token_program = accounts.get(4).ok_or(ProgramError::NotEnoughAccountKeys)?;
     check_mint(accounts.get(5).ok_or(ProgramError::NotEnoughAccountKeys)?)?;
+    let system_program = accounts.get(6).ok_or(ProgramError::NotEnoughAccountKeys)?;
 
     let mut order = [0u8; 32];
     order.copy_from_slice(&data[0..32]);
@@ -59,9 +64,12 @@ fn lock(program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) -> ProgramRe
     let mut basket = [0u8; 32];
     basket.copy_from_slice(&data[40..72]);
 
-    let (pda, _bump) = vault_address(program_id, &order);
-    if vault_info.key != &pda || vault_info.owner != program_id {
+    let (pda, bump) = vault_address(program_id, &order);
+    if vault_info.key != &pda {
         return Err(ProgramError::InvalidAccountData);
+    }
+    if vault_info.owner != program_id {
+        create_vault(buyer, vault_info, system_program, program_id, &order, bump)?;
     }
     token_owned_by(buyer_token, buyer.key)?;
     token_owned_by(vault_token, &pda)?;
@@ -148,6 +156,33 @@ fn refund(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     transfer(token_program, vault_token, buyer_token, vault_info, vault.amount, seeds)?;
     write_vault(vault_info, &next)?;
     Ok(())
+}
+
+fn create_vault<'a>(
+    payer: &AccountInfo<'a>,
+    vault: &AccountInfo<'a>,
+    system_program: &AccountInfo<'a>,
+    program_id: &Pubkey,
+    order: &OrderId,
+    bump: u8,
+) -> ProgramResult {
+    if system_program.key != &solana_program::system_program::id() {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+    let lamports = Rent::get()?.minimum_balance(VAULT_LEN);
+    let ix = system_instruction::create_account(
+        payer.key,
+        vault.key,
+        lamports,
+        VAULT_LEN as u64,
+        program_id,
+    );
+    let bump_seed = [bump];
+    invoke_signed(
+        &ix,
+        &[payer.clone(), vault.clone(), system_program.clone()],
+        &[&[b"vault", order.as_ref(), &bump_seed]],
+    )
 }
 
 pub fn transfer_data(amount: u64) -> [u8; 9] {
