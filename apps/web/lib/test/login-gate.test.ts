@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it, beforeEach } from 'node:test';
 
 import { choiceMessage } from '../retailer-choice.ts';
+import { loginRequiredMessage } from '../login-constants.ts';
 import {
   CounterUnavailable,
   FREE_TURNS,
@@ -73,13 +74,24 @@ describe('login-gate', () => {
       shouldShowLoginGate({ isAuthenticated: false, loginRequired: false, turnsUsed: FREE_TURNS - 1 }),
       false,
     );
-    const banner = loginGateBannerText({
-      isAuthenticated: false,
-      loginRequired: true,
-      turnsUsed: FREE_TURNS,
-    });
+    const banner = loginGateBannerText(
+      {
+        isAuthenticated: false,
+        loginRequired: true,
+        turnsUsed: FREE_TURNS,
+      },
+      'es',
+    );
     assert.equal(banner, LOGIN_REQUIRED_MESSAGE);
     assert.match(banner ?? '', /Para seguir, iniciá sesión/);
+    assert.equal(
+      loginGateBannerText({
+        isAuthenticated: false,
+        loginRequired: true,
+        turnsUsed: FREE_TURNS,
+      }),
+      loginRequiredMessage(),
+    );
   });
 
   it('blocks when IP soft ceiling is hit', () => {

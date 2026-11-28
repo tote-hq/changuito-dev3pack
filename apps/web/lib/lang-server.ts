@@ -20,7 +20,7 @@ export async function langFromCookie(): Promise<Lang> {
   } catch {
     // A context with no request — a static pass, a build-time probe — has no
     // preference to honour, and the default is the right answer rather than a
-    // crash on a page that renders perfectly well in Spanish.
+    // crash on a page that renders perfectly well in English.
     return DEFAULT_LANG;
   }
 }

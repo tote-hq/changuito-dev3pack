@@ -12,12 +12,13 @@ beforeEach(resetIds);
 
 describe('progressCopy stage', () => {
   it('follows the stage order from send through the reply', () => {
-    assert.equal(progressCopy(run([]), 0).stage, 'Enviando tu mensaje…');
-    assert.equal(progressCopy(run([{ t: 'status', stage: 'received' }]), 0).stage, 'Recibido. Preparando la búsqueda…');
-    assert.equal(progressCopy(run([{ t: 'status', stage: 'thinking', hop: 0 }]), 0).stage, 'Pensando qué buscar…');
-    assert.equal(progressCopy(run([{ t: 'status', stage: 'thinking', hop: 3 }]), 0).stage, 'Revisando lo que encontré…');
+    assert.equal(progressCopy(run([]), 0).stage, 'Sending your message…');
+    assert.equal(progressCopy(run([]), 0, 'es').stage, 'Enviando tu mensaje…');
+    assert.equal(progressCopy(run([{ t: 'status', stage: 'received' }]), 0).stage, 'Got it. Getting the search ready…');
+    assert.equal(progressCopy(run([{ t: 'status', stage: 'thinking', hop: 0 }]), 0).stage, 'Working out what to search for…');
+    assert.equal(progressCopy(run([{ t: 'status', stage: 'thinking', hop: 3 }]), 0).stage, 'Reading what I found…');
     const writing = run([{ t: 'status', stage: 'thinking', hop: 0 }, { t: 'text', delta: 'Te' }]);
-    assert.equal(progressCopy(writing, 0).stage, 'Escribiendo la respuesta…');
+    assert.equal(progressCopy(writing, 0).stage, 'Writing the reply…');
   });
 
   it('names the tool that is still running, then stops once it reported back', () => {
@@ -26,7 +27,7 @@ describe('progressCopy stage', () => {
       { t: 'tool_start', id: 't1', name: 'search_products' },
     ]);
     assert.equal(pendingTool(running), 'search_products');
-    assert.equal(progressCopy(running, 0).stage, 'Buscando productos…');
+    assert.equal(progressCopy(running, 0).stage, 'Searching for products…');
 
     const done = run([
       { t: 'tool_start', id: 't1', name: 'search_products' },
@@ -34,7 +35,7 @@ describe('progressCopy stage', () => {
       { t: 'status', stage: 'thinking', hop: 1 },
     ]);
     assert.equal(pendingTool(done), undefined);
-    assert.equal(progressCopy(done, 0).stage, 'Revisando lo que encontré…');
+    assert.equal(progressCopy(done, 0).stage, 'Reading what I found…');
   });
 
   it('never reports a tool from an earlier turn', () => {
