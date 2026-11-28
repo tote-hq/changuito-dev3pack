@@ -1,0 +1,16 @@
+[package]
+name = "changuito-custody"
+version = "0.1.0"
+edition = "2021"
+description = "Solana devnet custody for a funded Changuito cart. Not deployed by this crate."
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "changuito_custody"
+
+[dependencies]
+solana-program = "1.18"
+
+[features]
+no-entrypoint = []
+default = []
