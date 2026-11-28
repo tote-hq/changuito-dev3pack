@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it, beforeEach } from 'node:test';
 
 import { choiceMessage } from '../retailer-choice.ts';
+import { loginRequiredMessage } from '../login-constants.ts';
 import {
   CounterUnavailable,
   FREE_TURNS,
@@ -17,7 +18,6 @@ import {
   verifyUserToken,
   LOGIN_REQUIRED_MESSAGE,
   loginGateBannerText,
-  loginRequiredMessage,
   shouldShowLoginGate,
 } from '../login-gate.ts';
 
