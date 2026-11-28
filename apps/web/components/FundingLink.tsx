@@ -47,7 +47,7 @@ export function FundingLink({ centavos }: { centavos: number }) {
 
   if (!showFundingButton(address, centavos) && !funded) return null;
 
-  async function copy() {
+  async function copyLink() {
     if (!address) return;
     setBusy(true);
     setNote(null);
@@ -89,7 +89,7 @@ export function FundingLink({ centavos }: { centavos: number }) {
           data-testid="copy-funding-link"
           style={{ minHeight: 44, minWidth: 44 }}
           disabled={busy}
-          onClick={() => void copy()}
+          onClick={() => void copyLink()}
         >
           {copy.fundingCta}
         </button>
