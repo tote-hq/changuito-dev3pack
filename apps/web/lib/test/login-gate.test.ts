@@ -17,6 +17,7 @@ import {
   verifyUserToken,
   LOGIN_REQUIRED_MESSAGE,
   loginGateBannerText,
+  loginRequiredMessage,
   shouldShowLoginGate,
 } from '../login-gate.ts';
 
@@ -73,13 +74,24 @@ describe('login-gate', () => {
       shouldShowLoginGate({ isAuthenticated: false, loginRequired: false, turnsUsed: FREE_TURNS - 1 }),
       false,
     );
-    const banner = loginGateBannerText({
-      isAuthenticated: false,
-      loginRequired: true,
-      turnsUsed: FREE_TURNS,
-    });
+    const banner = loginGateBannerText(
+      {
+        isAuthenticated: false,
+        loginRequired: true,
+        turnsUsed: FREE_TURNS,
+      },
+      'es',
+    );
     assert.equal(banner, LOGIN_REQUIRED_MESSAGE);
     assert.match(banner ?? '', /Para seguir, iniciá sesión/);
+    assert.equal(
+      loginGateBannerText({
+        isAuthenticated: false,
+        loginRequired: true,
+        turnsUsed: FREE_TURNS,
+      }),
+      loginRequiredMessage(),
+    );
   });
 
   it('blocks when IP soft ceiling is hit', () => {
