@@ -14,9 +14,9 @@
  * ## Why a cookie and not localStorage
  *
  * `app/page.tsx` renders on the server. A choice kept only in the browser
- * arrives one paint too late, so the first screen is Spanish and then snaps to
- * English — for an English speaker, the one moment where they have no idea what
- * they are looking at. A cookie rides the request, so the server renders the
+ * arrives one paint too late, so the first screen is the default language and then snaps
+ * to the cookie — for a reader of the other language, the one moment where they
+ * have no idea what they are looking at. A cookie rides the request, so the server renders the
  * language the shopper picked.
  *
  * It is deliberately **not** HttpOnly: the toggle writes it from script and the
@@ -27,19 +27,20 @@
 
 export type Lang = 'es' | 'en';
 
-export const LANGS: readonly Lang[] = ['es', 'en'];
+export const LANGS: readonly Lang[] = ['en', 'es'];
 
-/** Spanish. The app is Argentine and that is the default for everyone. */
-export const DEFAULT_LANG: Lang = 'es';
+/** English. A first visit with no cookie is English. A cookie set to Spanish still wins. */
+export const DEFAULT_LANG: Lang = 'en';
 
 export const LANG_COOKIE = 'chg_lang';
 
 /** A year. A language preference is not a session. */
 export const LANG_MAX_AGE = 60 * 60 * 24 * 365;
 
-/** Anything that is not one of the two is Spanish, including undefined. */
+/** `es` and `en` are kept. Anything else, including a missing cookie, is English. */
 export function langFrom(value: unknown): Lang {
-  return value === 'en' ? 'en' : DEFAULT_LANG;
+  if (value === 'es' || value === 'en') return value;
+  return DEFAULT_LANG;
 }
 
 /**

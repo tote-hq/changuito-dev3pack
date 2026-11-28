@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
-import { HTML_LANG, type Lang, langCookie } from '../lib/lang.ts';
+import { HTML_LANG, type Lang, langCookie, DEFAULT_LANG } from '../lib/lang.ts';
 
 /**
  * Which language everything below here is written in.
@@ -11,7 +11,7 @@ import { HTML_LANG, type Lang, langCookie } from '../lib/lang.ts';
  * is the whole reason this provider is shaped the way it is: the server already
  * knows the answer from the `chg_lang` cookie, so the first HTML is in the right
  * language and there is nothing to correct on hydration. A provider that read
- * the cookie itself in an effect would render Spanish, then flip — which is the
+ * the cookie itself in an effect would render the default language, then flip — which is the
  * flash of the wrong language, shown to exactly the person who cannot read it.
  *
  * Compare `NetworkProvider`, which holds a *derived* value pushed up from below.
@@ -25,7 +25,7 @@ interface LangState {
   setLang: (next: Lang) => void;
 }
 
-const Ctx = createContext<LangState>({ lang: 'es', setLang: () => {} });
+const Ctx = createContext<LangState>({ lang: DEFAULT_LANG, setLang: () => {} });
 
 export function useLang(): Lang {
   return useContext(Ctx).lang;

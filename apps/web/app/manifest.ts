@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Changuito',
     short_name: 'Changuito',
     description: 'Asistente para armar el súper en Argentina y pagar con USDC.',
-    lang: 'es',
+    lang: 'en',
     dir: 'ltr',
     start_url: '/',
     scope: '/',
