@@ -1,5 +1,5 @@
 /**
- * Deploy the vinext build to changuito-web.
+ * Deploy the vinext build to the Worker named in cloudflare.config.ts.
  *
  * `cf deploy` runs in strict mode. On Workers Builds that mode refuses to
  * continue when the live script was last written by the dashboard or the

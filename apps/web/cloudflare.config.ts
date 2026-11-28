@@ -53,11 +53,12 @@ const hyperdriveId = process.env.CHG_HYPERDRIVE_ID?.trim();
 
 export default defineConfig({
   worker: defineWorker({
-    // The Worker that owns app.changuito.me and admin.changuito.me. Deployed
-    // by Workers Builds from this repo's main branch. Both hostnames are
-    // listed so a deploy does not detach the admin desk. Turnstile's hostname
-    // list is separate and is left as it is.
-    name: "changuito-web",
+    // Workers Builds for this repo deploys into changuito-sol. The name has
+    // to match that Worker: cf deploy refuses a wrangler name of
+    // changuito-web. app.changuito.me and admin.changuito.me stay on
+    // changuito-web, and ste.changuito.me stays on changuito-ste. Listing
+    // either here would move the hostname onto this Worker.
+    name: "changuito-sol",
     entrypoint: "./worker.ts",
     compatibilityDate: "2026-11-02",
     compatibilityFlags: ["nodejs_compat"],
@@ -66,12 +67,10 @@ export default defineConfig({
       notFoundHandling: "none",
       runWorkerFirst: ["/*", "!/_next/static/*", "!/*/_next/static/*"],
     },
-    // The domain this Worker already owns, declared so a deploy leaves it as
-    // it is. A hostname belongs to one Worker, so ste.changuito.me stays on
-    // changuito-ste.
+    // The hostname this Worker already owns. A deploy applies this list, so
+    // sol.changuito.me is declared and the other shop hostnames are not.
     domains: [
-      { hostname: "app.changuito.me", production: true, previews: false },
-      { hostname: "admin.changuito.me", production: true, previews: false },
+      { hostname: "sol.changuito.me", production: true, previews: false },
     ],
     workersDev: true,
     previewUrls: false,
