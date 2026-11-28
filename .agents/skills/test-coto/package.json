@@ -1,0 +1,11 @@
+{
+  "name": "test-coto",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "record": "node scripts/record.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.49.1"
+  }
+}
