@@ -1,0 +1,29 @@
+{
+  "name": "@changuito/pay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "pay.changuito.me. Opens a funding link and creates the sandbox ramp order.",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "next dev -p 3126",
+    "build": "next build",
+    "start": "next start -p 3126",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --no-warnings --test \"lib/test/*.test.ts\""
+  },
+  "dependencies": {
+    "next": "16.3.5",
+    "postgres": "^3.4.9",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "typescript": "5.9.3"
+  },
+  "type": "module"
+}
