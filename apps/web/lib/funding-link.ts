@@ -67,6 +67,20 @@ export function someoneFunded(balanceAtCopy: number | null, balanceNow: number |
   return balanceAtCopy !== null && balanceNow !== null && balanceNow > balanceAtCopy;
 }
 
+export type FundWatch = { phase: 'idle' } | { phase: 'watching'; baseline: number } | { phase: 'funded' };
+
+/** A failed balance read must not become zero, or the next poll looks like a payment. */
+export function fundWatchAfterCopy(balanceAtCopy: number | null): FundWatch {
+  if (balanceAtCopy === null) return { phase: 'idle' };
+  return { phase: 'watching', baseline: balanceAtCopy };
+}
+
+export function fundWatchOnPoll(watch: FundWatch, balanceNow: number | null): FundWatch {
+  if (watch.phase !== 'watching') return watch;
+  if (someoneFunded(watch.baseline, balanceNow)) return { phase: 'funded' };
+  return watch;
+}
+
 /** Sum of parsed USDC ui amounts. A missing or failed body is null, not zero. */
 export function usdcFromRpc(body: unknown): number | null {
   if (!body || typeof body !== 'object') return null;

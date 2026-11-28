@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { showFundingButton, someoneFunded } from '../lib/funding-link.ts';
+import { fundWatchAfterCopy, fundWatchOnPoll, showFundingButton, type FundWatch } from '../lib/funding-link.ts';
 import { uiCopy } from '../lib/ui-copy.ts';
 import { useWallet } from '../lib/use-wallet.ts';
 import { useLang } from './LangProvider';
@@ -17,25 +17,33 @@ export function FundingLink({ centavos }: { centavos: number }) {
   const wallet = useWallet();
   const copy = uiCopy(useLang()).cart;
   const address = wallet.solanaAddress ?? null;
-  const [funded, setFunded] = useState(false);
+  const [watch, setWatch] = useState<FundWatch>({ phase: 'idle' });
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const funded = watch.phase === 'funded';
 
   useEffect(() => {
     if (!address) return;
     const raw = sessionStorage.getItem(`${BASELINE}:${address}`);
     if (raw === null) return;
     const baseline = Number(raw);
+    if (Number.isFinite(baseline)) setWatch({ phase: 'watching', baseline });
+  }, [address]);
+
+  useEffect(() => {
+    if (!address || watch.phase !== 'watching') return;
+    const baseline = watch.baseline;
     const timer = setInterval(() => {
       void fetch(`/api/solana-balance?wallet=${encodeURIComponent(address)}`)
         .then((res) => res.json())
         .then((body: { usdc?: number | null }) => {
-          if (someoneFunded(baseline, body.usdc ?? null)) setFunded(true);
+          const usdc = typeof body.usdc === 'number' ? body.usdc : null;
+          setWatch((current) => fundWatchOnPoll(current, usdc));
         })
         .catch(() => {});
     }, 5000);
     return () => clearInterval(timer);
-  }, [address]);
+  }, [address, watch]);
 
   if (!showFundingButton(address, centavos) && !funded) return null;
 
@@ -54,9 +62,11 @@ export function FundingLink({ centavos }: { centavos: number }) {
       await navigator.clipboard.writeText(json.url);
       const balance = await fetch(`/api/solana-balance?wallet=${encodeURIComponent(address)}`)
         .then((r) => r.json())
-        .then((body: { usdc?: number | null }) => body.usdc ?? 0)
-        .catch(() => 0);
-      sessionStorage.setItem(`${BASELINE}:${address}`, String(balance));
+        .then((body: { usdc?: number | null }) => (typeof body.usdc === 'number' ? body.usdc : null))
+        .catch(() => null);
+      const next = fundWatchAfterCopy(balance);
+      setWatch(next);
+      if (next.phase === 'watching') sessionStorage.setItem(`${BASELINE}:${address}`, String(next.baseline));
       setNote(json.url);
     } catch (err) {
       setNote(err instanceof Error ? err.message : 'link failed');

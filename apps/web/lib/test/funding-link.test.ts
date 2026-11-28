@@ -8,6 +8,8 @@ import {
   amountArsFromCentavos,
   base58Decode,
   base58Encode,
+  fundWatchAfterCopy,
+  fundWatchOnPoll,
   fundingUrl,
   lockData,
   newFundingRow,
@@ -55,10 +57,13 @@ describe('funding link', () => {
     assert.equal(solanaAddressFrom({ accounts: { solana: { address: WALLET } } }), WALLET);
   });
 
-  it('says the cart was funded only when the balance rose', () => {
-    assert.equal(someoneFunded(1, 1.5), true);
-    assert.equal(someoneFunded(1, 1), false);
-    assert.equal(someoneFunded(null, 1), false);
+  it('starts watching after a copy and shows the line only when the balance rises', () => {
+    assert.deepEqual(fundWatchAfterCopy(null), { phase: 'idle' });
+    const watching = fundWatchAfterCopy(1);
+    assert.deepEqual(watching, { phase: 'watching', baseline: 1 });
+    assert.deepEqual(fundWatchOnPoll(watching, 1), watching);
+    assert.deepEqual(fundWatchOnPoll(watching, null), watching);
+    assert.deepEqual(fundWatchOnPoll(watching, 1.5), { phase: 'funded' });
   });
 
   it('parses a token balance and treats a failed body as unknown', () => {
