@@ -63,6 +63,16 @@ export function OrderPanel({
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message ?? json.error ?? `settle failed (${res.status})`);
+      void fetch('/api/solana-settle', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          buyers: [order.buyer],
+          orderId: order.orderId,
+          basketHash: order.basketHash,
+        }),
+      }).catch(() => {});
       setOutcome(json as SettleResponse);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));

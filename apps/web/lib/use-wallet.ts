@@ -32,6 +32,8 @@ export interface WalletState {
   kind: 'off' | 'privy' | 'mobile';
   /** The account address. Case-sensitive: never upper-case it. */
   address: string | null;
+  /** Pollar Solana address, when the session has one. Never the Stellar address. */
+  solanaAddress?: string | null;
   email: string | null;
   /** Opens Pollar. `email` or `google` limits the modal to that one method. */
   login: (method?: 'email' | 'google') => void;

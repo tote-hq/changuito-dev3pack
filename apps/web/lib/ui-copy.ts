@@ -27,6 +27,10 @@ export interface CartCopy {
   title: string;
   total: string;
   payCta: string;
+  /** Beside pay. Copies a link a friend can open. */
+  fundingCta: string;
+  /** Shown on the cart when the Solana balance rose after the link was copied. */
+  fundedLine: string;
   /** `openAt('Dia')` -> "Abrir en Dia". */
   openAt: (store: string) => string;
   /** One is a sentence, several is a count. Both say the same thing. */
@@ -346,6 +350,8 @@ const ES: UiCopy = {
     title: 'Tu changuito',
     total: 'Total',
     payCta: 'Proceder al pago',
+    fundingCta: 'Copiar link para pagar',
+    fundedLine: 'Alguien pagó este carrito.',
     openAt: (store) => `Abrir en ${store}`,
     oosOne: '1 producto quedó sin stock.',
     oosMany: (n) => `${n} productos quedaron sin stock.`,
@@ -615,6 +621,8 @@ const EN: UiCopy = {
     title: 'Your changuito',
     total: 'Total',
     payCta: 'Proceed to checkout',
+    fundingCta: 'Copy funding link',
+    fundedLine: 'Someone funded this cart.',
     openAt: (store) => `Open in ${store}`,
     oosOne: '1 item went out of stock.',
     oosMany: (n) => `${n} items went out of stock.`,
