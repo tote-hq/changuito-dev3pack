@@ -1,6 +1,6 @@
 ---
 name: hackathon-workflow
-description: Hackathon shipping defaults for this repo. Use when starting a feature, opening a PR, choosing a chain, creating wallets or ramps, or deploying. Covers Solana devnet, the Pollar SDK, feature-branch pull requests to main, and Cloudflare Workers plus Supabase.
+description: Hackathon shipping defaults for this repo. Use when starting a feature, opening a PR, writing comments or docs, recording a demo, choosing a chain, creating wallets or ramps, or deploying. Covers Solana devnet, the Pollar SDK, feature-branch pull requests to main, Cloudflare Workers plus Supabase, and English for every public artifact (text, voice, audio, video).
 ---
 
 # Hackathon workflow
@@ -22,8 +22,12 @@ Shipping a working devnet demo comes before production hardening (KYC, rate limi
 
 1. Branch from `main`: `feat/<short-name>`.
 2. Keep the diff to that feature.
-3. Open one PR into `main`. GitHub text in English. Say what the demo shows.
+3. Open one PR into `main`. Say what the demo shows. Language is below.
 4. Do not push to `main` yourself.
+
+## Language
+
+Comments, pull requests, documentation, and anything published are always in English. All public work is in English, including text, voice, audio, and video.
 
 ## What to build
 
