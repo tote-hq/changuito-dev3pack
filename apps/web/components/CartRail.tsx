@@ -8,6 +8,7 @@ import { INTL_LOCALE, type Lang } from '../lib/lang.ts';
 import { RETAILER_NAMES } from '../lib/retailers.ts';
 import { uiCopy } from '../lib/ui-copy.ts';
 import { useLang } from './LangProvider';
+import { FundingLink } from './FundingLink';
 import { useShop } from './ShopProvider';
 
 /**
@@ -197,6 +198,7 @@ function RailLines({
             {uiCopy(lang).cart.payCta}
           </button>
         ) : null}
+        <FundingLink centavos={cart.total.centavos} />
       </footer>
     </>
   );

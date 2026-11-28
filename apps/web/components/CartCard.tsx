@@ -6,6 +6,7 @@ import type { CotoPayGateName } from '../lib/checkout/coto-pay-gate.ts';
 import { RETAILER_NAMES } from '../lib/retailers.ts';
 
 import { uiCopy } from '../lib/ui-copy.ts';
+import { FundingLink } from './FundingLink';
 import { useLang } from './LangProvider';
 
 /**
@@ -96,6 +97,7 @@ export function CartCard({
               {copy.openAt(store)}
             </a>
           ) : null}
+          <FundingLink centavos={cart.total.centavos} />
         </div>
       </footer>
     </section>

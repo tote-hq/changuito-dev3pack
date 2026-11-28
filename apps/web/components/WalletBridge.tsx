@@ -4,6 +4,7 @@ import { usePollar } from '@pollar/react';
 import { useCallback, useMemo } from 'react';
 
 import { openThroughChannels } from '../lib/channels-open.ts';
+import { solanaAddressFrom } from '../lib/funding-link.ts';
 import { useWalletSigner } from '../lib/use-wallet-signer.ts';
 import { useWalletSigners } from '../lib/use-wallet-signers.ts';
 import { WalletContext, type WalletState } from '../lib/use-wallet.ts';
@@ -54,6 +55,7 @@ export function WalletBridge({ children }: { children: React.ReactNode }) {
     androidChoices: false,
     kind: 'off',
     address,
+    solanaAddress: isAuthenticated ? solanaAddressFrom(wallet) : null,
     email: null,
     login: () => { openLoginModal(); },
     loginMobile: async () => {},
@@ -61,7 +63,7 @@ export function WalletBridge({ children }: { children: React.ReactNode }) {
     accessToken: sign,
     signTransaction: async () => { throw new Error('wallet unavailable'); },
     openEscrow,
-  }), [address, configStatus, isAuthenticated, logout, openEscrow, openLoginModal, sign]);
+  }), [address, configStatus, isAuthenticated, logout, openEscrow, openLoginModal, sign, wallet]);
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
 }
